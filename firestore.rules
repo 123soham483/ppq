@@ -1,0 +1,95 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Enforces access control for user profile information.
+     * @path /users/{userId}
+     * @allow (create) - Authenticated user can create their own profile if the userId matches their auth.uid.
+     * @allow (get, list) - Authenticated user can read their own profile.
+     * @allow (update, delete) - Authenticated user can update or delete their own profile.
+     * @deny (create) - User cannot create a profile with a userId that doesn't match their auth.uid.
+     * @deny (get, list, update, delete) - User cannot access or modify another user's profile.
+     * @principle Enforces document ownership for writes.
+     */
+    match /users/{userId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource.data != null;
+      }
+
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if false;
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && isExistingOwner(userId);
+      allow delete: if isSignedIn() && isExistingOwner(userId);
+    }
+
+    /**
+     * @description Enforces access control for encoded images.
+     * @path /users/{userId}/encodedImages/{encodedImageId}
+     * @allow (create) - Authenticated user can create encoded images under their own user ID.
+     * @allow (get, list) - Authenticated user can read their own encoded images.
+     * @allow (update, delete) - Authenticated user can update or delete their own encoded images.
+     * @deny (create) - User cannot create encoded images under another user's ID.
+     * @deny (get, list, update, delete) - User cannot access or modify another user's encoded images.
+     * @principle Enforces document ownership for writes.
+     */
+    match /users/{userId}/encodedImages/{encodedImageId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource.data != null;
+      }
+
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && isExistingOwner(userId);
+      allow delete: if isSignedIn() && isExistingOwner(userId);
+    }
+
+    /**
+     * @description Enforces access control for encryption keys.
+     * @path /users/{userId}/encryptionKeys/{encryptionKeyId}
+     * @allow (create) - Authenticated user can create encryption keys under their own user ID.
+     * @allow (get, list) - Authenticated user can read their own encryption keys.
+     * @allow (update, delete) - Authenticated user can update or delete their own encryption keys.
+     * @deny (create) - User cannot create encryption keys under another user's ID.
+     * @deny (get, list, update, delete) - User cannot access or modify another user's encryption keys.
+     * @principle Enforces document ownership for writes.
+     */
+    match /users/{userId}/encryptionKeys/{encryptionKeyId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource.data != null;
+      }
+
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && isExistingOwner(userId);
+      allow delete: if isSignedIn() && isExistingOwner(userId);
+    }
+  }
+}
